@@ -1,0 +1,1 @@
+This is a mock of UI project. We only use it to generate releases on Reliza Hub Playground - to show the point, otherwise it doesn't do anything.

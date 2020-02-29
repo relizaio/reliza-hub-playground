@@ -9,8 +9,36 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
-    - name: Run a one-line script
-      run: echo Hello, world!
+    - name: Build and submit release for Back-end project
+      run: |
+        # compute sha256 for the filesystem of our backend mock project
+        # note that we should supply sha256: prefix to keep convention
+        echo -n sha256: > digest_file
+        find playground-backend-project -type f -exec sha256sum {} \; | sha256sum | cut -d ' ' -f 1 >> digest_file
+        backend_digest = $(cat digest_file)
+        # call reliza and see if this file system artifact was already registered before
+        docker run --rm relizaio/reliza-go-client checkhash -u https://playground.relizahub.com    \
+          -i ${{ secrets.RELIZA_PROJECT_API_ID }} -k ${{ secrets.RELIZA_PROJECT_API_KEY }} --hash $backend_digest > reliza_backend_check 2>&1
+        echo "Response from Reliza Playground:"
+        cat reliza_backend_check
+        # now only create new release if no release was found with same hash
+        if [ $(cat reliza_backend_check) == "{}" ]
+        then
+          # obtain version
+          docker run --rm relizaio/reliza-go-client getversion -u https://playground.relizahub.com    \
+            -i ${{ secrets.RELIZA_PROJECT_API_ID }} -k ${{ secrets.RELIZA_PROJECT_API_KEY }} -b $GITHUB_REF > full_version_output 2>&1
+          echo "Backend version response:"
+          cat full_version_output
+          # now construct actual version variable - we could use jq, but why install another tool in CI env?
+          cat full_version_output | grep version | cut -d ':' -f 2 | cut -d '"' -f 2 > version
+          vvar=$(cat version) # this is actual version variable
+          # finally stream our mock release metadata back to Reliza Playground (note that without -u param it would stream to production relizahub.com)
+          docker run --rm relizaio/reliza-go-client addrelease -u https://playground.relizahub.com -b $GITHUB_REF --commit $GITHUB_SHA -v $vvar \
+            -i ${{ secrets.RELIZA_PROJECT_API_ID }} -k ${{ secrets.RELIZA_PROJECT_API_KEY }} --artid reliza-backend-playground-$vvar \
+            --artbuildid github$GITHUB_ACTION$GITHUB_SHA --artcimeta GitHub Actions --arttype file_system --artdigests $(cat digest_file)
+        else
+          echo "Artifact is already part of another release, not duplicating backend release"
+        fi
     - name: Run a multi-line script
       run: |
         echo Add other actions to build,
