@@ -15,6 +15,8 @@ jobs:
         # note that we should supply sha256: prefix to keep convention
         echo -n sha256: > digest_file
         find playground-backend-project -type f -exec sha256sum {} \; | sha256sum | cut -d ' ' -f 1 >> digest_file
+        echo Digest:
+        echo $(cat digest_file)
         # call reliza and see if this file system artifact was already registered before
         docker run --rm relizaio/reliza-go-client checkhash -u https://playground.relizahub.com    \
           -i ${{ secrets.RELIZA_BACKEND_PROJECT_API_ID }} -k ${{ secrets.RELIZA_BACKEND_PROJECT_API_KEY }} --hash $(cat digest_file) > reliza_backend_check 2>&1
