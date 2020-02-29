@@ -15,15 +15,18 @@ jobs:
         # note that we should supply sha256: prefix to keep convention
         echo -n sha256: > digest_file
         find playground-backend-project -type f -exec sha256sum {} \; | sha256sum | cut -d ' ' -f 1 >> digest_file
+        docker pull relizaio/reliza-go-client
         echo Digest:
         echo $(cat digest_file)
         # call reliza and see if this file system artifact was already registered before
         docker run --rm relizaio/reliza-go-client checkhash -u https://playground.relizahub.com    \
           -i ${{ secrets.RELIZA_BACKEND_PROJECT_API_ID }} -k ${{ secrets.RELIZA_BACKEND_PROJECT_API_KEY }} --hash $(cat digest_file) > reliza_backend_check 2>&1
         echo "Response from Reliza Playground:"
-        cat reliza_backend_check
+        backend_check=$(cat reliza_backend_check)
+        echo $backend_check
+        sleep 5
         # now only create new release if no release was found with same hash
-        if [ "$(cat reliza_backend_check)" == "{}" ]
+        if [ "$backend_check" == "{}" ]
         then
           # obtain version
           docker run --rm relizaio/reliza-go-client getversion -u https://playground.relizahub.com    \
