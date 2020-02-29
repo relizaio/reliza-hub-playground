@@ -23,7 +23,7 @@ jobs:
         echo "Response from Reliza Playground:"
         cat reliza_backend_check
         # now only create new release if no release was found with same hash
-        if [ $(cat reliza_backend_check) == "{}" ]
+        if [ "$(cat reliza_backend_check)" == "{}" ]
         then
           # obtain version
           docker run --rm relizaio/reliza-go-client getversion -u https://playground.relizahub.com    \
