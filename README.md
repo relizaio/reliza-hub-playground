@@ -11,4 +11,4 @@ It consists of
 
 Production version of Reliza Hub (currently in public preview): [https://relizahub.com](https://relizahub.com)
 
-Reliza Client Project available [here](https://github.com/relizaio/relizaGoClient).
+API Documentation is available in the README of Reliza Client Project [here](https://github.com/relizaio/relizaGoClient).
