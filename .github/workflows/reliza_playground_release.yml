@@ -14,7 +14,7 @@ jobs:
         # compute sha256 for the filesystem of our backend mock project
         # note that we should supply sha256: prefix to keep convention
         echo -n sha256: > digest_file
-        find playground-backend-project -type f -exec sha256sum {} \; | sha256sum | cut -d ' ' -f 1 >> digest_file
+        find playground-backend-project -type f -exec sha256sum {} \; |  awk '{print $1}' | sort -d | sha256sum | cut -d ' ' -f 1 >> digest_file
         docker pull relizaio/reliza-go-client
         echo Digest:
         echo $(cat digest_file)
@@ -49,7 +49,7 @@ jobs:
         # compute sha256 for the filesystem of our backend mock project
         # note that we should supply sha256: prefix to keep convention
         echo -n sha256: > digest_file
-        find playground-ui-project -type f -exec sha256sum {} \; | sha256sum | cut -d ' ' -f 1 >> digest_file
+        find playground-ui-project -type f -exec sha256sum {} \; |  awk '{print $1}' | sort -d | sha256sum | cut -d ' ' -f 1 >> digest_file
         docker pull relizaio/reliza-go-client
         echo Digest:
         echo $(cat digest_file)
